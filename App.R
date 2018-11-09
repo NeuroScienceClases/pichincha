@@ -385,7 +385,7 @@ values$pagoopera<-((if (input$selectpuesto==1){values$operacioesserior[values$op
   observeEvent(input$button,{
   ###############modelo de predicion#############################################
   library(readxl)
-  values$VENTAS_MICROFINANZAS_MODELO <- read_excel("D:/Users/luisiv/Desktop/webR/graficosdinamicos/data/VENTAS MICROFINANZAS MODELO.xlsx")
+  values$VENTAS_MICROFINANZAS_MODELO <- read_excel("/data/VENTAS MICROFINANZAS MODELO.xlsx")
   library(lattice)
   library(foreach)
   library(Matrix)
