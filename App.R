@@ -1,11 +1,26 @@
-#
-# This is the user-interface definition of a Shiny web application. You can
-# run the application by clicking 'Run App' above.
-#
-# Find out more about building applications with Shiny here:
-# 
-#    http://shiny.rstudio.com/
-#
+compute_data <- function(updateProgress = NULL) {
+  # Create 0-row data frame which will be used to store data
+  dat <- data.frame(x = numeric(0), y = numeric(0))
+  
+  for (i in 1:10) {
+    Sys.sleep(0.25)
+    
+    # Compute new row of data
+    new_row <- data.frame(x = rnorm(1), y = rnorm(1))
+    
+    # If we were passed a progress update function, call it
+    if (is.function(updateProgress)) {
+      text <- paste0("x:", round(new_row$x, 2), " y:", round(new_row$y, 2))
+      updateProgress(detail = text)
+    }
+    
+    # Add the new row of data
+    dat <- rbind(dat, new_row)
+  }
+  
+  dat
+}
+
 
 library(rsconnect)
 library(shiny)
@@ -141,9 +156,13 @@ overflow-y:scroll; max-height: 50px; background: ghostwhite;}
                                 ),
                                 
                               fluidRow(
-                             
-                                actionButton("button", "Calcular Comision"),
+                              
+                               
+                              
+                                actionButton("button", "Calcular Comision",class = "btn-primary"),
                                                br(),
+                              #  radioButtons('style', 'Progress bar style', c('notification', 'old')),
+                                
                                              # textOutput("textaa1"),
                                              # textOutput("textaa2"),
                                              # textOutput("textaa3"),
@@ -383,9 +402,14 @@ values$pagoopera<-((if (input$selectpuesto==1){values$operacioesserior[values$op
   })
 ################################################33
   observeEvent(input$button,{
+    
+    style <- isolate("notification")
+    progress <- shiny::Progress$new(style = style)
+    
+    progress$set(message = "Computing data", value = 0)
   ###############modelo de predicion#############################################
   library(readxl)
-  values$VENTAS_MICROFINANZAS_MODELO <- read_excel("data/VENTAS MICROFINANZAS MODELO.xlsx")
+  values$VENTAS_MICROFINANZAS_MODELO <- read_excel("D:/Users/luisiv/Desktop/webR/graficosdinamicos/data/VENTAS MICROFINANZAS MODELOl.xlsx")
   library(lattice)
   library(foreach)
   library(Matrix)
@@ -401,14 +425,15 @@ values$pagoopera<-((if (input$selectpuesto==1){values$operacioesserior[values$op
   values$test<-values$VENTAS_MICROFINANZAS_MODELO[values$NUMERO:nrow(values$VENTAS_MICROFINANZAS_MODELO),]
   # Fit linear regression model
   values$myGrid <- data.frame(mtry = 1,splitrule="variance",min.node.size=1)
-  values$modelranger <- train(comision ~ monto+tasa, data=values$train,
+  progress$set(message = "Computing data", value = 0.2)
+  values$modelranger <- train(comision ~ monto+tasa+operaciones, data=values$train,
                               method = "ranger",tuneGrid = values$myGrid,
                               trControl = trainControl(
                                 method = "cv", number = 10,
                                 verboseIter = TRUE
                               )
   )
-  values$prediccion<-data.frame(monto=input$text07,tasa=input$text08)
+  values$prediccion<-data.frame(monto=input$text07,tasa=input$text08,operaciones=input$text06)
   values $pagoventa<-predict(values$modelranger,values$prediccion)*input$text06
   ###############################################################################
   
@@ -434,13 +459,35 @@ values$pagoopera<-((if (input$selectpuesto==1){values$operacioesserior[values$op
   
   
   output$tableasesores1 <-renderTable(values$tableasesores)
-  
+  progress$set(message = "Computing data", value = 0.8)
   output$asesorespago <- renderText({
     paste(values$pagosasesoresfinal)})
+
   
+
+  
+  # Close the progress when this reactive exits (even if there's an error)
+  on.exit(progress$close())
+  
+  updateProgress <- function(value = NULL, detail = NULL) {
+    if (is.null(value)) {
+      value <- progress$getValue()
+      value <- value + (progress$getMax() - value) / 5
+    }
+    progress$set(value = value, detail = detail)
+  }
+ # compute_data(updateProgress)
+
   })
   
   ########################PYMES
+
+
+  
+  # Compute the new data, and pass in the updateProgress function so
+  # that it can update the progress indicator.
+
+  
   
   observeEvent(input$buttonpymes,{
 
@@ -477,7 +524,7 @@ values$pagoopera<-((if (input$selectpuesto==1){values$operacioesserior[values$op
 
   #############33
     
- 
+
 
   
 }
