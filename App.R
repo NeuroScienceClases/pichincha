@@ -409,7 +409,7 @@ values$pagoopera<-((if (input$selectpuesto==1){values$operacioesserior[values$op
     progress$set(message = "Computing data", value = 0)
   ###############modelo de predicion#############################################
   library(readxl)
-  values$VENTAS_MICROFINANZAS_MODELO <- read_excel("D:/Users/luisiv/Desktop/webR/graficosdinamicos/data/VENTAS MICROFINANZAS MODELOl.xlsx")
+  values$VENTAS_MICROFINANZAS_MODELO <- read_excel(/data/VENTAS MICROFINANZAS MODELOl.xlsx)
   library(lattice)
   library(foreach)
   library(Matrix)
